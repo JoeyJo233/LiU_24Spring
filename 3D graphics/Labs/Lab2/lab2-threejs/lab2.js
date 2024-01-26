@@ -7,8 +7,23 @@ var windowHalfY = window.innerHeight / 2;
 
 // Object3D ("Group") nodes and Mesh nodes
 var sceneRoot = new THREE.Group();
+
 var earthSpin = new THREE.Group();
 var earthMesh;
+
+var moonSpin = new THREE.Group();
+var moonMesh;
+
+var SunSpin = new THREE.Group();
+var SunMesh;
+
+var sunLight = new THREE.PointLight(0xffffff, 50, 100);
+
+
+
+
+var earth_moon =  new THREE.Group();
+var Sun_earth = new THREE.Group();
 
 var animation = true;
 
@@ -32,25 +47,71 @@ function createSceneGraph() {
     // Top-level node
     scene.add(sceneRoot);
     // earth branch
-    sceneRoot.add(earthSpin);
+    //sceneRoot.add(earthSpin);
+    //sceneRoot.add(moonSpin);
+    scene.add(sunLight);
+
+    sceneRoot.add(Sun_earth);
+
+    
+    Sun_earth.add(SunSpin);
+
+    SunSpin.scale.set(0.7,0.7,0.7);
+
+    SunSpin.add(SunMesh);
+
+    Sun_earth.add(earth_moon);
+
+    earth_moon.add(earthSpin);
+    earth_moon.add(moonSpin);
+
     earthSpin.add(earthMesh);
+    moonSpin.add(moonMesh);
+
+    sunLight.position.set(SunMesh.position.x, SunMesh.position.y, SunMesh.position.z);
+    
+    earthSpin.scale.set(0.3, 0.3, 0.3);
+    earthSpin.rotation.z = 23.44 * Math.PI / 180.0;
+
+
+    moonSpin.position.x = 0.6;
+    moonSpin.scale.set(0.3, 0.3, 0.3);
+    moonSpin.rotation.z = 5.15 * Math.PI / 180.0;
+
+    earth_moon.position.x = 5.0;
+
 }
 
 function init() {
     container = document.getElementById('container');
 
     camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.z = 5;
+    camera.position.z = 1;
     
     var texloader = new THREE.TextureLoader();
     
     // Earth mesh
-	var geometryEarth = new THREE.BoxGeometry(1, 1, 1, 8, 8, 8);    
+	var geometryEarth = new THREE.SphereGeometry(radius = 1, widthSegments = 100, heightSegments = 100);    
+    var geometryMoon = new THREE.SphereGeometry(radius = 0.3, widthSegments = 100, heightSegments = 100);
+    var geometrySun = new THREE.SphereGeometry(radius = 2, widthSegments = 100, heightSegments = 100);
 
-    var materialEarth = new THREE.MeshBasicMaterial();
+
+    var materialEarth = new THREE.MeshLambertMaterial();
+    var materialMoon = new THREE.MeshLambertMaterial();
+    var materialSun = new THREE.MeshBasicMaterial();
+
     materialEarth.combine = 0;
     materialEarth.needsUpdate = true;
     materialEarth.wireframe = false;    
+
+    materialMoon.combine = 0;
+    materialMoon.needsUpdate = true;
+    materialMoon.wireframe = false;  
+
+    materialSun.combine = 0;
+    materialSun.needsUpdate = true;
+    materialSun.wireframe = false;  
+
     //
     // Task 2: uncommenting the following two lines requires you to run this example with a (local) webserver
     //
@@ -61,13 +122,19 @@ function init() {
     //
     // see https://threejs.org/docs/#manual/en/introduction/How-to-run-things-locally
     //
-    /*
-	const earthTexture = texloader.load('tex/2k_earth_daymap.jpg');
+	
+    const earthTexture = texloader.load('tex/2k_earth_daymap.jpg');
     materialEarth.map = earthTexture;
-    */
+
+    const moonTexture = texloader.load('tex/2k_moon.jpg');
+    materialMoon.map = moonTexture;
+
+    const SunTexture = texloader.load('tex/2k_sun.jpg');
+    materialSun.map = SunTexture;
+    
 
     // Task 7: material using custom Vertex Shader and Fragment Shader
-    /*
+    
 	var uniforms = THREE.UniformsUtils.merge( [
 	    { 
 	    	colorTexture : { value : new THREE.Texture() }
@@ -82,9 +149,14 @@ function init() {
 		lights : true
 	});
 	shaderMaterial.uniforms.colorTexture.value = earthTexture;
-	*/
+	
 
+
+
+    //earthMesh = new THREE.Mesh(geometryEarth, shaderMaterial);
     earthMesh = new THREE.Mesh(geometryEarth, materialEarth);
+    moonMesh = new THREE.Mesh(geometryMoon, materialMoon);
+    SunMesh = new THREE.Mesh(geometrySun, materialSun);
 
     createSceneGraph();
 
@@ -119,7 +191,15 @@ function render() {
 
     // Perform animations
     if (animation) {
-    	earthSpin.rotation.y += 0.01;
+
+        Sun_earth.rotation.y += (2*Math.PI)/(365*144.0);
+
+        SunSpin.rotation.y += (2*Math.PI)/(25*60.0)-(2*Math.PI)/(365*144.0);
+
+        earth_moon.rotation.y += (2*Math.PI)/(27.3*144);
+
+        earthSpin.rotation.y+= (2*Math.PI)/(1*144.0)-(2*Math.PI)/(27.3*144);
+
     }
 
     // Render the scene
