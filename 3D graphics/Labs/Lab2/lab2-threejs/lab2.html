@@ -64,30 +64,45 @@
 			}
 	</script>
 	<script type="x-shader/x-fragment" id="fragmentShader">
-
-			struct PointLight {
-				vec3 position;
-				vec3 color;
-			};
-			uniform PointLight pointLights[ NUM_POINT_LIGHTS ];
-			uniform vec3 ambientLightColor;
-
-			varying vec3 vWorldpos;
-			varying vec3 vNormal;
-			varying vec2 vUv;
-
-			uniform sampler2D colorTexture;
-
-			void main() {
-				vec4 color = texture2D(colorTexture, vUv);				
-				vec3 normal = normalize(normal);
-
-				vec3 lightDir = normalize(pointLights[0].position - vWorldpos);
-				vec3 diffuse = max(dot(normal, lightDir), 0.0) * pointLights[0].color;
-
-				gl_FragColor = vec4(color.xyz * (diffuse + ambientLightColor), 1.0);
-			}
+		struct PointLight {
+			vec3 position;
+			vec3 color;
+		};
+		uniform PointLight pointLights[NUM_POINT_LIGHTS];
+		uniform vec3 ambientLightColor;
+		uniform vec3 viewPosition; // 添加观察者位置
+		uniform float shininess;    // 材质的光泽度
+		uniform float specularStrength; // 镜面反射强度
+	
+		varying vec3 vWorldpos;
+		varying vec3 vNormal;
+		varying vec2 vUv;
+	
+		uniform sampler2D colorTexture;
+	
+		void main() {
+			vec4 color = texture2D(colorTexture, vUv);
+			vec3 normal = normalize(vNormal); // 应该使用 vNormal 而非 normal
+	
+			vec3 lightDir = normalize(pointLights[0].position - vWorldpos);
+			vec3 viewDir = normalize(viewPosition - vWorldpos);
+			vec3 reflectDir = reflect(-lightDir, normal);
+	
+			// 漫反射
+			vec3 diffuse = max(dot(normal, lightDir), 0.0) * pointLights[0].color;
+	
+			// 镜面反射
+			float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+			vec3 specular = spec * pointLights[0].color * specularStrength;
+	
+			// 环境光
+			vec3 ambient = ambientLightColor;
+	
+			vec3 result = (ambient + diffuse + specular) * color.xyz;
+			gl_FragColor = vec4(result, 1.0);
+		}
 	</script>
+	
 
     <div id="container"></div>
 

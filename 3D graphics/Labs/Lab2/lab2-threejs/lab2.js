@@ -126,6 +126,10 @@ function init() {
     const earthTexture = texloader.load('tex/2k_earth_daymap.jpg');
     materialEarth.map = earthTexture;
 
+    const earthspec12Texture = texloader.load('tex/2k_earth_specular_map.jpg');
+    materialEarth.map = earthTexture;
+
+
     const moonTexture = texloader.load('tex/2k_moon.jpg');
     materialMoon.map = moonTexture;
 
@@ -148,6 +152,7 @@ function init() {
 		fragmentShader : document.getElementById('fragmentShader').textContent.trim(),
 		lights : true
 	});
+
 	shaderMaterial.uniforms.colorTexture.value = earthTexture;
 	
 
